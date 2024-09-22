@@ -1,0 +1,33 @@
+[
+{
+    "paths": ["out/IncrementSystem.sol/IncrementSystem.json"],
+        "generatorConfigs": [
+            {
+                "baseNamespace": "Nethereum.Mud.IntegrationTests.MudTest.Systems",
+                "basePath":  "codeGenNodeTest/GeneratorSets/Example1/Nethereum.Mud.IntegrationTests/Systems",
+                "codeGenLang": 0,
+                "generatorType": "ContractDefinition",
+                "mudNamespace": "app"
+            },
+            {
+                "baseNamespace": "Nethereum.Mud.IntegrationTests.MudTest.Systems",
+                "basePath":  "codeGenNodeTest/GeneratorSets/Example1/Nethereum.Mud.IntegrationTests/Systems",
+                "codeGenLang": 0,
+                "generatorType": "MudExtendedService",
+                "mudNamespace": "app"
+            }
+        ]
+},
+{
+    "paths": ["mud.config.ts"],
+        "generatorConfigs": [
+            {
+                "baseNamespace": "Nethereum.Mud.IntegrationTests.MudTest.Tables",
+                "basePath":  "codeGenNodeTest/GeneratorSets/Example1/Nethereum.Mud.IntegrationTests/Tables",
+                "generatorType": "MudTables",
+                "mudNamespace": "app"
+               
+            }
+        ]
+}
+]
