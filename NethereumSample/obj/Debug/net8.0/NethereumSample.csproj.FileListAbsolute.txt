@@ -39,3 +39,6 @@ D:\programming\blockchain\mud\nethmud-test\NethereumSample\obj\Debug\net8.0\refi
 D:\programming\blockchain\mud\nethmud-test\NethereumSample\obj\Debug\net8.0\NethereumSample.pdb
 D:\programming\blockchain\mud\nethmud-test\NethereumSample\obj\Debug\net8.0\NethereumSample.genruntimeconfig.cache
 D:\programming\blockchain\mud\nethmud-test\NethereumSample\obj\Debug\net8.0\ref\NethereumSample.dll
+D:\programming\blockchain\mud\nethmud-test\NethereumSample\obj\Debug\net8.0\NethereumSample.sourcelink.json
+D:\programming\blockchain\mud\nethmud-test\NethereumSample\bin\Debug\net8.0\Nethereum.JsonRpc.WebSocketClient.dll
+D:\programming\blockchain\mud\nethmud-test\NethereumSample\bin\Debug\net8.0\Nethereum.RPC.Reactive.dll

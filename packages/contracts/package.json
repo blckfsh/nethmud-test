@@ -13,7 +13,8 @@
     "lint": "pnpm run prettier && pnpm run solhint",
     "prettier": "prettier --write 'src/**/*.sol'",
     "solhint": "solhint --config ./.solhint.json 'src/**/*.sol' --fix",
-    "test": "tsc --noEmit && mud test"
+    "test": "tsc --noEmit && mud test",
+    "increment:local": "forge script script/Increment.s.sol:Increment --rpc-url http://127.0.0.1:8545 --broadcast --private-key 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80 -vvvv --sig 'run(address)' 0x3b8748ae91253e2ba6bd8da00bc664ea0bb41893"
   },
   "dependencies": {
     "@latticexyz/cli": "2.2.7",

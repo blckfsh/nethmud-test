@@ -45,11 +45,19 @@
         "net8.0": {
           "targetAlias": "net8.0",
           "dependencies": {
+            "Nethereum.JsonRpc.WebSocketClient": {
+              "target": "Package",
+              "version": "[4.25.0, )"
+            },
             "Nethereum.Mud": {
               "target": "Package",
               "version": "[4.25.0, )"
             },
             "Nethereum.Mud.Contracts": {
+              "target": "Package",
+              "version": "[4.25.0, )"
+            },
+            "Nethereum.RPC.Reactive": {
               "target": "Package",
               "version": "[4.25.0, )"
             },

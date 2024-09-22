@@ -8,8 +8,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Nethereum.JsonRpc.WebSocketClient" Version="4.25.0" />
     <PackageReference Include="Nethereum.Mud" Version="4.25.0" />
     <PackageReference Include="Nethereum.Mud.Contracts" Version="4.25.0" />
+    <PackageReference Include="Nethereum.RPC.Reactive" Version="4.25.0" />
     <PackageReference Include="System.Reactive" Version="6.0.1" />
   </ItemGroup>
 

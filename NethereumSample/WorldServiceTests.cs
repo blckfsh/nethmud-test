@@ -24,6 +24,15 @@ using Nethereum.Util;
 using Nethereum.Mud.Contracts.World.Systems.AccessManagementSystem;
 using Nethereum.ABI;
 using Nethereum.RLP;
+using System.Reactive.Linq;
+using System.Threading;
+using Nethereum.Mud;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using Nethereum.RPC.Reactive.Eth.Subscriptions;
+using Nethereum.Web3.Accounts;
+using Nethereum.JsonRpc.WebSocketClient;
+using Nethereum.JsonRpc.WebSocketStreamingClient;
 
 
 namespace Nethereum.Mud.IntegrationTests
@@ -55,7 +64,7 @@ namespace Nethereum.Mud.IntegrationTests
      */
     public class WorldServiceTests
     {
-        public const string WorldAddress = "0x1a5c41fff7965d391a09b4e4dd893df87fb60153";
+        public const string WorldAddress = "0x3b8748ae91253e2ba6bd8da00bc664ea0bb41893";
         public const string WorldUrl = "http://localhost:8545";
         //using default anvil private key
         public const string OwnerPK = "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80";
@@ -212,9 +221,6 @@ namespace Nethereum.Mud.IntegrationTests
             // Assert.True(record.StaticData.ToBigIntegerFromRLPDecoded() == 8);
         }
 
-
-
-
         public async Task ShouldSetAndGetRecordTableItem()
         {
             var worldService = GetWorldService();
@@ -282,11 +288,11 @@ namespace Nethereum.Mud.IntegrationTests
             var results = await inMemoryStore.GetTableRecordsAsync<CounterTableRecord>(tableId);
 
             // Assert.True(results.ToList()[0].Values.Value> 0);
-            Console.WriteLine(results.ToList()[0].Values.Value);
-            // foreach (var result in results)
-            // {
-            //     Console.WriteLine("value: " + result.Values.Value);
-            // }
+
+            foreach (var result in results)
+            {
+                Console.WriteLine("value: " + result.Values.Value);
+            }
 
 
             var resultsSystems = await inMemoryStore.GetTableRecordsAsync<SystemsTableRecord>(new SystemsTableRecord().ResourceIdEncoded);
@@ -343,7 +349,6 @@ namespace Nethereum.Mud.IntegrationTests
             // Assert.True(results.ToList()[0].Values.Value > 0);
 
         }
-
 
         public async Task ShouldGetAllTablesRegistered()
         {
@@ -412,6 +417,106 @@ namespace Nethereum.Mud.IntegrationTests
                     Console.WriteLine(field.Order);
                 }
 
+            }
+        }
+
+        // public async Task MonitorTableChanges()
+        // {
+        //     Console.WriteLine("Starting MonitorTableChanges");
+        //     // Initialize Web3 and the services (assume WorldAddress is defined elsewhere)
+        //     var web3 = GetWeb3();
+        //     var storeLogProcessingService = new StoreEventsLogProcessingService(web3, WorldAddress);
+        //     var inMemoryStore = new InMemoryTableRepository();
+
+        //     // Define the Table ID you are interested in
+        //     var tableId = new CounterTableRecord().ResourceIdEncoded;
+
+        //     // Create an observable that listens to changes in the table
+        //     var observable = Observable.Create<CounterTableRecord>(async observer =>
+        //     {
+        //         await storeLogProcessingService.ProcessAllStoreChangesAsync(inMemoryStore, tableId, null, null, CancellationToken.None);
+        //         var results = await inMemoryStore.GetTableRecordsAsync<CounterTableRecord>(tableId);
+
+        //         // Emit each record to the observer
+        //         foreach (var result in results)
+        //         {
+        //             observer.OnNext(result);
+        //         }
+
+        //         // Complete the sequence after processing current records
+        //         observer.OnCompleted();
+
+        //         return () => { /* Dispose or clean up resources if needed */ };
+        //     });
+
+        //     // Subscribe to the observable to react to new data
+        //     observable.Subscribe(
+        //         record =>
+        //         {
+        //             // React to new record, e.g., print or process it further
+        //             Console.WriteLine($"New record value: {record.Values.Value}");
+        //         },
+        //         ex => Console.WriteLine($"Error: {ex.Message}"),
+        //         () => Console.WriteLine("Completed processing all records.")
+        //     );
+
+        //     // Keep the application running (you may have another event loop or mechanism)
+        //     Console.ReadLine();
+        // }
+
+        private static ulong _lastProcessedBlock = 0;
+        private readonly string _webSocketUrl = "ws://localhost:8545"; // Assuming you're using a local Ethereum node
+        
+        public async Task MonitorTableChangesRealTime()
+        {
+            Console.WriteLine("Starting MonitorTableChangesRealTime");
+            // Initialize Nethereum's StreamingWebSocketClient
+            using (var webSocketClient = new StreamingWebSocketClient(_webSocketUrl))
+            {
+                var storeLogProcessingService = new StoreEventsLogProcessingService(new Nethereum.Web3.Web3(_webSocketUrl), WorldAddress);
+                var inMemoryStore = new InMemoryTableRepository();
+
+                // Define the Table ID
+                var tableId = new CounterTableRecord().ResourceIdEncoded;
+
+                // Create a block header subscription
+                var blockHeaderSubscription = new EthNewBlockHeadersObservableSubscription(webSocketClient);
+
+                // Subscribe to the block header stream
+                blockHeaderSubscription.GetSubscriptionDataResponsesAsObservable()
+                    .Select(blockHeader => (ulong)blockHeader.Number.Value) // Cast BigInteger to ulong
+                    .Subscribe(async newBlockNumber =>
+                    {
+                        // Process new changes on each new block
+                        await storeLogProcessingService.ProcessAllStoreChangesAsync(
+                            inMemoryStore,
+                            tableId,
+                            _lastProcessedBlock,  // Fetch changes from the last processed block
+                            newBlockNumber,       // Until current block
+                            CancellationToken.None
+                        );
+
+                        // Update the last processed block
+                        _lastProcessedBlock = newBlockNumber;
+
+                        // Fetch and react to new data
+                        var results = await inMemoryStore.GetTableRecordsAsync<CounterTableRecord>(tableId);
+                        foreach (var result in results)
+                        {
+                            Console.WriteLine($"New Counter Value: {result.Values.Value}");
+                        }
+                    },
+                    ex => Console.WriteLine($"Error: {ex.Message}"));
+
+                // Open WebSocket connection and start the subscription
+                await webSocketClient.StartAsync();
+                await blockHeaderSubscription.SubscribeAsync();
+
+                Console.WriteLine("Subscribed to new block headers. Press any key to exit.");
+                Console.ReadKey();
+
+                // Unsubscribe and stop WebSocket connection before exiting
+                await blockHeaderSubscription.UnsubscribeAsync();
             }
         }
     }
