@@ -89,6 +89,26 @@ namespace Nethereum.Mud.IntegrationTests.MudTest.Systems.IncrementSystem
              return ContractHandler.SendRequestAndWaitForReceiptAsync<IncrementFunction>(null, cancellationToken);
         }
 
+        public Task<string> IncrementWithRevertRequestAsync(IncrementWithRevertFunction incrementWithRevertFunction)
+        {
+             return ContractHandler.SendRequestAsync(incrementWithRevertFunction);
+        }
+
+        public Task<string> IncrementWithRevertRequestAsync()
+        {
+             return ContractHandler.SendRequestAsync<IncrementWithRevertFunction>();
+        }
+
+        public Task<TransactionReceipt> IncrementWithRevertRequestAndWaitForReceiptAsync(IncrementWithRevertFunction incrementWithRevertFunction, CancellationTokenSource cancellationToken = null)
+        {
+             return ContractHandler.SendRequestAndWaitForReceiptAsync(incrementWithRevertFunction, cancellationToken);
+        }
+
+        public Task<TransactionReceipt> IncrementWithRevertRequestAndWaitForReceiptAsync(CancellationTokenSource cancellationToken = null)
+        {
+             return ContractHandler.SendRequestAndWaitForReceiptAsync<IncrementWithRevertFunction>(null, cancellationToken);
+        }
+
         public Task<bool> SupportsInterfaceQueryAsync(SupportsInterfaceFunction supportsInterfaceFunction, BlockParameter blockParameter = null)
         {
             return ContractHandler.QueryAsync<SupportsInterfaceFunction, bool>(supportsInterfaceFunction, blockParameter);
@@ -111,6 +131,7 @@ namespace Nethereum.Mud.IntegrationTests.MudTest.Systems.IncrementSystem
                 typeof(MsgValueFunction),
                 typeof(WorldFunction),
                 typeof(IncrementFunction),
+                typeof(IncrementWithRevertFunction),
                 typeof(SupportsInterfaceFunction)
             };
         }
@@ -127,6 +148,7 @@ namespace Nethereum.Mud.IntegrationTests.MudTest.Systems.IncrementSystem
         {
             return new List<Type>
             {
+                typeof(IncrementsystemCounterrevertError),
                 typeof(SliceOutofboundsError)
             };
         }

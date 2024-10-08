@@ -33,6 +33,7 @@ using Nethereum.RPC.Reactive.Eth.Subscriptions;
 using Nethereum.Web3.Accounts;
 using Nethereum.JsonRpc.WebSocketClient;
 using Nethereum.JsonRpc.WebSocketStreamingClient;
+using Nethereum.Mud.IntegrationTests.MudTest;
 
 
 namespace Nethereum.Mud.IntegrationTests
@@ -64,7 +65,7 @@ namespace Nethereum.Mud.IntegrationTests
      */
     public class WorldServiceTests
     {
-        public const string WorldAddress = "0x3b8748ae91253e2ba6bd8da00bc664ea0bb41893";
+        public const string WorldAddress = "0xaf318b1edfa10f2d7a5a6a8aac36921cd0cda264";
         public const string WorldUrl = "http://localhost:8545";
         //using default anvil private key
         public const string OwnerPK = "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80";
@@ -102,6 +103,10 @@ namespace Nethereum.Mud.IntegrationTests
         {
         }
 
+        [Function("incrementwithrevert")]
+        public class IncrementWithRevertFunction : FunctionMessage
+        {
+        }
 
         public void ShouldGenerateResourceIdsOnDifferentAbstractImplementations()
         {
@@ -210,6 +215,52 @@ namespace Nethereum.Mud.IntegrationTests
             //the value should have been incremented by 1 of the previous value we set 2000
             // Assert.True(recordCounter.Values.Value == 2501);
 
+        }
+
+        public async Task ShouldCallIncrementWithRevert()
+        {
+            var worldService = GetWorldService();
+            var recordCounter = await worldService.GetRecordTableQueryAsync<CounterTableRecord, CounterTableRecord.CounterValue>(new CounterTableRecord());
+
+            Console.WriteLine("recordCounter: " + recordCounter.Values.Value);
+            var web3 = GetWeb3();
+            var mudTest = new MudTestNamespace(web3, WorldAddress);
+
+            try
+            {
+                Console.WriteLine("Try Calling IncrementWithRevert");
+
+                // Increment 
+                // await mudTest.Systems.IncrementSystemService.IncrementRequestAndWaitForReceiptAsync();
+
+                // Increment with revert
+                await mudTest.Systems.IncrementSystemService.IncrementWithRevertRequestAndWaitForReceiptAsync();
+
+                var counterRecord = await mudTest.Tables.CounterTableService.GetTableRecordAsync();
+                Console.WriteLine("counter: " + counterRecord.Values.Value);
+
+                Console.WriteLine("End Calling IncrementWithRevert");
+            }
+            catch (SmartContractCustomErrorRevertException e)
+            {
+                Console.WriteLine("Execute Catch block");
+                if (e.IsCustomErrorFor<WorldAccessdeniedError>())
+                {
+                    var errorAccessDenied = e.DecodeError<WorldAccessdeniedError>();
+                    Console.WriteLine("error: " + errorAccessDenied.Resource);
+                }
+
+                // Fully recommended
+                var fullError = mudTest.FindCustomErrorException(e);
+                Console.WriteLine(fullError.ErrorABI.Name);
+
+                // Not recommended
+                // if (e.IsCustomErrorFor<IncrementsystemCounterrevertError>())
+                // {
+                //     var errorCustomRevert = e.DecodeError<IncrementsystemCounterrevertError>();
+                //     Console.WriteLine("error: " + errorCustomRevert);
+                // }
+            }
         }
 
 
@@ -466,7 +517,7 @@ namespace Nethereum.Mud.IntegrationTests
 
         private static ulong _lastProcessedBlock = 0;
         private readonly string _webSocketUrl = "ws://localhost:8545"; // Assuming you're using a local Ethereum node
-        
+
         public async Task MonitorTableChangesRealTime()
         {
             Console.WriteLine("Starting MonitorTableChangesRealTime");

@@ -10,4 +10,6 @@ pragma solidity >=0.8.24;
  */
 interface IIncrementSystem {
   function app__increment() external returns (uint32);
+
+  function app__incrementWithRevert() external returns (uint32);
 }
